@@ -4,13 +4,16 @@ from app.core.database import SessionLocal
 from app.models.database import DeviceStatus
 from app.models.schemas import DeviceStatusCreate, DeviceStatusResponse, HistoricalStatusResponse
 from app.core.security import get_api_key
-from typing import Optional
+from typing import Optional, Generator
 from math import ceil
 
 
 router = APIRouter()
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
+    """
+    Dependency that provides a SQLAlchemy session and ensures it is closed after use.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -18,7 +21,15 @@ def get_db():
         db.close()
 
 @router.post("/status", response_model=DeviceStatusResponse, status_code=201)
-def create_status(payload: DeviceStatusCreate, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def create_status(
+    payload: DeviceStatusCreate,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+) -> DeviceStatusResponse:
+    """
+    Create a new status update for a device.
+    Requires a valid API key.
+    """
     status_obj = DeviceStatus(**payload.model_dump())
     db.add(status_obj)
     db.commit()
@@ -26,7 +37,16 @@ def create_status(payload: DeviceStatusCreate, db: Session = Depends(get_db), ap
     return status_obj
 
 @router.get("/status/summary")
-def get_status_summary(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def get_status_summary(
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+) -> dict:
+    """
+    Get a summary of all devices, including their latest status.
+    Returns total, online, and offline device counts.
+    Requires a valid API key.
+    """
+    # Get the latest status for each device
     subq = (
         db.query(
             DeviceStatus.device_id,
@@ -55,7 +75,16 @@ def get_status_summary(db: Session = Depends(get_db), api_key: str = Depends(get
     }
 
 @router.get("/status/{device_id}", response_model=DeviceStatusResponse)
-def get_latest_status(device_id: str, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def get_latest_status(
+    device_id: str,
+    db: Session = Depends(get_db),
+    api_key: str = Depends(get_api_key)
+) -> DeviceStatusResponse:
+    """
+    Get the latest status update for a specific device.
+    Returns 404 if the device is not found.
+    Requires a valid API key.
+    """
     status_obj = (
         db.query(DeviceStatus)
         .filter(DeviceStatus.device_id == device_id)
@@ -73,7 +102,12 @@ def get_historical_status(
     page_size: int = Query(10, ge=1, le=100, description="Number of records per page"),
     db: Session = Depends(get_db),
     api_key: str = Depends(get_api_key)
-):
+) -> dict:
+    """
+    Get a paginated list of all status updates for a device.
+    Returns 404 if the device is not found.
+    Requires a valid API key.
+    """
     # Check if device exists
     device_exists = db.query(DeviceStatus).filter(DeviceStatus.device_id == device_id).first()
     if not device_exists:
@@ -83,7 +117,7 @@ def get_historical_status(
     total_records = db.query(DeviceStatus).filter(DeviceStatus.device_id == device_id).count()
     
     # Calculate pagination
-    total_pages = ceil(total_records / page_size)
+    total_pages = ceil(total_records / page_size) if total_records > 0 else 1
     if page > total_pages and total_pages > 0:
         raise HTTPException(status_code=400, detail=f"Page number exceeds total pages ({total_pages})")
 
