@@ -57,7 +57,7 @@ Ubiety-assignment/
 
 1. **Clone the repo**
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/aashikmathew/ubiety-iot-status-service
    cd Ubiety-assignment
    ```
 
@@ -244,6 +244,35 @@ See `requirements.txt` for all Python dependencies:
 - **Extensible**: Easily add more endpoints, services, or authentication methods.
 - **Well-documented**: Clear structure, sample commands, and test coverage.
 - **Professional workflow**: Clean commit history, clear README, and robust error handling.
+
+---
+
+## 🚦 CI/CD Integration
+
+This project is CI/CD-ready. To ensure code quality and reliability, you can add the following to your CI pipeline (e.g., GitHub Actions, GitLab CI, etc.):
+
+- **Install dependencies**
+- **Run Alembic migrations (if needed for integration tests)**
+- **Run all tests:**
+  ```sh
+  pytest
+  ```
+- **Linting and formatting checks** (optional)
+
+This ensures that all code pushed to the repository passes tests and is production-ready.
+
+---
+
+## 🧠 Design Decisions
+
+- **FastAPI** was chosen for its speed, modern features, and async support.
+- **SQLAlchemy** and **Alembic** provide robust ORM and migration support.
+- **API Key authentication** is simple but effective for this use case; can be swapped for OAuth/JWT in production.
+- **Docker Compose** enables easy local development and onboarding.
+- **Pydantic** schemas ensure strict validation and clear API contracts.
+- **Test structure** separates unit and integration tests for clarity and maintainability.
+- **Error handling** is explicit and user-friendly, with clear status codes and messages.
+- **Pagination** for history endpoint ensures scalability for devices with many status updates.
 
 ---
 
