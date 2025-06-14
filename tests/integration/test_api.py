@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from datetime import datetime, timedelta
 
 client = TestClient(app)
 headers = {"X-API-Key": "supersecretkey123"}
@@ -52,3 +53,54 @@ def test_summary_with_multiple_devices():
     assert "sensor-a" in ids
     assert "sensor-b" in ids
     assert data["total_devices"] >= 2
+
+def test_historical_status():
+    # Create multiple status updates for a device
+    device_id = "sensor-hist-test"
+    timestamps = [
+        (datetime.now() - timedelta(minutes=i)).isoformat()
+        for i in range(15)  # Create 15 status updates
+    ]
+    
+    for ts in timestamps:
+        payload = {
+            "device_id": device_id,
+            "timestamp": ts,
+            "battery_level": 90,
+            "rssi": -50,
+            "online": True
+        }
+        client.post("/status", json=payload, headers=headers)
+
+    # Test default pagination (page 1, size 10)
+    response = client.get(f"/status/{device_id}/history", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["device_id"] == device_id
+    assert len(data["statuses"]) == 10  # Default page size
+    assert data["total_records"] == 15
+    assert data["page"] == 1
+    assert data["page_size"] == 10
+    assert data["total_pages"] == 2
+
+    # Test second page
+    response = client.get(f"/status/{device_id}/history?page=2", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["statuses"]) == 5  # Remaining records
+    assert data["page"] == 2
+
+    # Test custom page size
+    response = client.get(f"/status/{device_id}/history?page_size=5", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["statuses"]) == 5
+    assert data["total_pages"] == 3
+
+    # Test invalid page number
+    response = client.get(f"/status/{device_id}/history?page=999", headers=headers)
+    assert response.status_code == 400
+
+    # Test nonexistent device
+    response = client.get("/status/nonexistent-device/history", headers=headers)
+    assert response.status_code == 404

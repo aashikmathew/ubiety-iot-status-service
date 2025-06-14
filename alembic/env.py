@@ -82,6 +82,8 @@ else:
     run_migrations_online()
 
 
+# Set the database URL for Docker environment
 config.set_main_option(
-    "sqlalchemy.url", os.environ.get("DATABASE_URL", "postgresql://ubiety:password@localhost:5432/ubiety_iot")
+    "sqlalchemy.url", os.environ.get("DATABASE_URL", "postgresql://ubiety:password@db:5432/ubiety_iot")
 )
+
