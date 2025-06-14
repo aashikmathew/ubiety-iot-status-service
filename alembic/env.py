@@ -29,6 +29,8 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+# Get the database URL from the environment or fallback to alembic.ini
+DATABASE_URL = os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url")
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -42,7 +44,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -61,6 +63,8 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # Override the sqlalchemy.url config dynamically
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -80,10 +84,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
-
-# Set the database URL for Docker environment
-config.set_main_option(
-    "sqlalchemy.url", os.environ.get("DATABASE_URL", "postgresql://ubiety:password@db:5432/ubiety_iot")
-)
 
