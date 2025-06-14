@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, constr
 from datetime import datetime
 
 class DeviceStatusCreate(BaseModel):
-    device_id: constr(min_length=1) = Field(..., example="sensor-abc-123")
+    device_id: constr(min_length=1) = Field(..., json_schema_extra={"example": "sensor-abc-123"})
     timestamp: datetime
     battery_level: int = Field(..., ge=0, le=100)
     rssi: int
@@ -13,4 +13,4 @@ class DeviceStatusResponse(DeviceStatusCreate):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

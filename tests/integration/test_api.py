@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 client = TestClient(app)
+headers = {"X-API-Key": "supersecretkey123"}
 
 def test_create_and_summary():
     payload = {
@@ -12,10 +13,10 @@ def test_create_and_summary():
         "rssi": -50,
         "online": True
     }
-    response = client.post("/status", json=payload)
+    response = client.post("/status", json=payload, headers=headers)
     assert response.status_code == 201
 
-    response = client.get("/status/summary")
+    response = client.get("/status/summary", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "devices" in data
@@ -23,7 +24,7 @@ def test_create_and_summary():
     assert any(d["device_id"] == "sensor-test-2" for d in data["devices"])
 
 def test_get_nonexistent_device():
-    response = client.get("/status/nonexistent-device")
+    response = client.get("/status/nonexistent-device", headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Device not found"
 
@@ -42,9 +43,9 @@ def test_summary_with_multiple_devices():
         "rssi": -70,
         "online": False
     }
-    client.post("/status", json=payload1)
-    client.post("/status", json=payload2)
-    response = client.get("/status/summary")
+    client.post("/status", json=payload1, headers=headers)
+    client.post("/status", json=payload2, headers=headers)
+    response = client.get("/status/summary", headers=headers)
     assert response.status_code == 200
     data = response.json()
     ids = [d["device_id"] for d in data["devices"]]
