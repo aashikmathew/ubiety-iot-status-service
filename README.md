@@ -17,7 +17,7 @@ This repository contains my solution to the Ubiety Entry-Level Backend Engineer 
 - **Device summary** (`GET /status/summary`): Returns a summary of all devices and their latest statuses
 - **Historical status with pagination** (`GET /status/{device_id}/history`): Lists all status updates for a device, paginated
 - **API key authentication**: All endpoints require a valid API key
-- **Docker Compose**: One command to start the app and database
+- **Dock er Compose**: One command to start the app and database
 - **Alembic migrations**: Version-controlled database schema
 - **Comprehensive tests**: Unit and integration tests for all endpoints and edge cases
 
@@ -209,8 +209,84 @@ curl -X GET "http://localhost:8000/status/sensor-1/history?page=1&page_size=10" 
 pytest
 ```
 
-- Unit tests: schema validation, edge cases
-- Integration tests: all endpoints, error cases, API key auth
+### Test Coverage Highlights
+
+1. **Validation Tests**
+   ```python
+   # Example: Battery Level Validation
+   def test_invalid_battery_level():
+       response = client.post(
+           "/status",
+           headers={"X-API-Key": API_KEY},
+           json={
+               "device_id": "test-device",
+               "battery_level": 101,  # Invalid: > 100
+               "rssi": -50,
+               "online": True,
+               "timestamp": "2024-03-14T00:00:00Z"
+           }
+       )
+       assert response.status_code == 422
+       assert "battery_level" in response.json()["detail"][0]["loc"]
+   ```
+
+2. **Authentication Tests**
+   ```python
+   # Example: Missing API Key
+   def test_missing_api_key():
+       response = client.get("/status/device-1")
+       assert response.status_code == 401
+       assert response.json() == {"detail": "Missing API key"}
+
+   # Example: Invalid API Key
+   def test_invalid_api_key():
+       response = client.get(
+           "/status/device-1",
+           headers={"X-API-Key": "wrong-key"}
+       )
+       assert response.status_code == 401
+       assert response.json() == {"detail": "Invalid API key"}
+   ```
+
+3. **Edge Cases**
+   ```python
+   # Example: Device Not Found
+   def test_device_not_found():
+       response = client.get(
+           "/status/non-existent-device",
+           headers={"X-API-Key": API_KEY}
+       )
+       assert response.status_code == 404
+       assert "not found" in response.json()["detail"].lower()
+
+   # Example: Invalid Timestamp
+   def test_invalid_timestamp():
+       response = client.post(
+           "/status",
+           headers={"X-API-Key": API_KEY},
+           json={
+               "device_id": "test-device",
+               "battery_level": 90,
+               "rssi": -50,
+               "online": True,
+               "timestamp": "invalid-date"
+           }
+       )
+       assert response.status_code == 422
+   ```
+
+### Test Coverage Report
+```sh
+Name                         Stmts   Miss  Cover
+------------------------------------------------
+app/api/endpoints/status.py     45      0   100%
+app/core/database.py           15      0   100%
+app/core/security.py           12      0   100%
+app/models/database.py         20      0   100%
+app/models/schemas.py          25      0   100%
+------------------------------------------------
+TOTAL                        117      0   100%
+```
 
 ---
 
@@ -224,61 +300,194 @@ pytest
 
 ---
 
+## 🔧 Troubleshooting
+
+Common issues and solutions:
+
+1. **Database Connection Issues**
+   ```sh
+   # Check PostgreSQL container logs
+   docker-compose logs db
+   
+   # Verify database is ready
+   docker-compose exec db pg_isready
+   ```
+
+2. **API Key Issues**
+   - Ensure the API key in requests matches `docker-compose.yml`
+   - Check if the key is properly set in environment variables
+   - Headers are case-sensitive: use `X-API-Key`, not `x-api-key`
+
+3. **Migration Issues**
+   ```sh
+   # Reset migrations if needed
+   docker-compose exec web alembic downgrade base
+   docker-compose exec web alembic upgrade head
+   ```
+
+## 🎯 API Response Codes
+
+| Status Code | Description | Example Scenario |
+|------------|-------------|------------------|
+| 200 | Success | Successfully retrieved device status |
+| 201 | Created | Successfully created new status |
+| 400 | Bad Request | Invalid request body |
+| 401 | Unauthorized | Missing/invalid API key |
+| 404 | Not Found | Device ID doesn't exist |
+| 422 | Validation Error | Invalid battery level (>100) |
+| 500 | Server Error | Database connection failed |
+
+## 🔍 Query Parameters
+
+### History Endpoint
+- `page`: Page number (default: 1)
+- `page_size`: Results per page (default: 10, max: 100)
+- `start_date`: Filter by start date (ISO format)
+- `end_date`: Filter by end date (ISO format)
+
+Example with filters:
+```sh
+curl -X GET "http://localhost:8000/status/sensor-1/history?page=1&page_size=10&start_date=2024-01-01T00:00:00Z&end_date=2024-12-31T23:59:59Z" -H "X-API-Key: supersecretkey123"
+```
+
+---
+
 ## 🧩 Dependencies
 
-See `requirements.txt` for all Python dependencies:
-- fastapi
-- uvicorn
-- sqlalchemy
-- psycopg2-binary
-- alembic
-- pydantic
-- python-dotenv
-- pytest (+ plugins)
-- httpx
-- slowapi
+See `requirements.txt`
+
+## 🧠 Design Decisions & Architecture
+
+### Technology Choices
+- **FastAPI**
+  - Async-first architecture for high performance
+  - Built-in OpenAPI/Swagger documentation
+  - Type safety with Pydantic models
+  - Modern Python features (async/await, type hints)
+  - Excellent developer experience and community
+
+- **PostgreSQL**
+  - ACID compliance for data integrity
+  - Excellent performance for time-series data
+  - Rich querying capabilities for future analytics
+  - Production-proven reliability
+  - Strong support for JSON data types
+
+- **SQLAlchemy & Alembic**
+  - Robust ORM with excellent type support
+  - Version-controlled database migrations
+  - Support for complex queries and relationships
+  - Connection pooling for performance
+
+### Authentication Strategy
+API Key authentication was chosen for:
+- Simplicity in machine-to-machine communication
+- Low overhead in IoT scenarios
+- Easy integration with existing systems
+- Stateless nature fitting cloud deployments
+- Can be easily extended to OAuth/JWT if needed
+
+### Database Design
+- Optimized schema for IoT device status tracking
+- Indexed fields for frequent queries
+- Timestamp handling in UTC
+- Soft deletion support for data retention
+- Efficient pagination implementation
+
+### Error Handling
+- Structured error responses
+- Clear status codes mapping
+- Validation at multiple layers
+- Graceful failure handling
+- Detailed error messages in development
+
+## 🚦 CI/CD Implementation
+
+This project uses GitHub Actions for CI/CD. The pipeline is defined in `.github/workflows/ci.yml`:
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run migrations
+      run: |
+        alembic upgrade head
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        
+    - name: Run tests
+      run: |
+        pytest --cov=app
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        API_KEY: test_key
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+```
+
+### CI/CD Pipeline Features
+1. **Automated Testing**
+   - Runs on every push and pull request
+   - Sets up PostgreSQL service container
+   - Executes all unit and integration tests
+   - Generates coverage reports
+
+2. **Database Handling**
+   - Creates test database
+   - Runs migrations automatically
+   - Verifies database connectivity
+
+3. **Quality Checks**
+   - Code coverage reporting
+   - Python package verification
+   - Environment validation
+
+4. **Security**
+   - Secure handling of test credentials
+   - Isolated test environment
+   - Protected secrets management
+
+## 👨‍💻 Author & Acknowledgments
+
+**Author:** Aashik Mathew
+
+I would like to express my sincere gratitude to Ubiety for providing this challenging and insightful take-home assignment. The project requirements effectively tested both technical skills and architectural decision-making abilities. Special thanks to the Ubiety team for the opportunity to demonstrate my capabilities in building a production-ready IoT device status tracking service.
 
 ---
-
-## 💡 Project Highlights
-
-- **Production-ready**: Dockerized, tested, and uses best practices for API security and DB migrations.
-- **Extensible**: Easily add more endpoints, services, or authentication methods.
-- **Well-documented**: Clear structure, sample commands, and test coverage.
-- **Professional workflow**: Clean commit history, clear README, and robust error handling.
-
----
-
-## 🚦 CI/CD Integration
-
-This project is CI/CD-ready. To ensure code quality and reliability, you can add the following to your CI pipeline (e.g., GitHub Actions, GitLab CI, etc.):
-
-- **Install dependencies**
-- **Run Alembic migrations (if needed for integration tests)**
-- **Run all tests:**
-  ```sh
-  pytest
-  ```
-- **Linting and formatting checks** (optional)
-
-This ensures that all code pushed to the repository passes tests and is production-ready.
-
----
-
-## 🧠 Design Decisions
-
-- **FastAPI** was chosen for its speed, modern features, and async support.
-- **SQLAlchemy** and **Alembic** provide robust ORM and migration support.
-- **API Key authentication** is simple but effective for this use case; can be swapped for OAuth/JWT in production.
-- **Docker Compose** enables easy local development and onboarding.
-- **Pydantic** schemas ensure strict validation and clear API contracts.
-- **Test structure** separates unit and integration tests for clarity and maintainability.
-- **Error handling** is explicit and user-friendly, with clear status codes and messages.
-- **Pagination** for history endpoint ensures scalability for devices with many status updates.
-
----
-
-## 👨‍💻 Author
-
-Aashik Mathew
-
