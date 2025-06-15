@@ -1,5 +1,7 @@
 # Ubiety Entry-Level Backend Engineer Take-Home Assessment
 
+![CI](https://github.com/aashikmathew/ubiety-iot-status-service/actions/workflows/ci.yml/badge.svg)
+
 This repository contains my solution to the Ubiety Entry-Level Backend Engineer Take-Home Assessment. The project demonstrates:
 - A robust, production-ready backend API for IoT device status tracking
 - Built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, and **Alembic**
