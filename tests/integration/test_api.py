@@ -104,3 +104,25 @@ def test_historical_status():
     # Test nonexistent device
     response = client.get("/status/nonexistent-device/history", headers=headers)
     assert response.status_code == 404
+
+def test_battery_level_out_of_bounds():
+    payload = {
+        "device_id": "sensor-x",
+        "timestamp": "2025-06-14T10:00:00Z",
+        "battery_level": 150,  # Invalid
+        "rssi": -55,
+        "online": True
+    }
+    response = client.post("/status", json=payload, headers=headers)
+    assert response.status_code == 422
+
+def test_missing_api_key():
+    payload = {
+        "device_id": "sensor-y",
+        "timestamp": "2025-06-14T10:00:00Z",
+        "battery_level": 90,
+        "rssi": -40,
+        "online": True
+    }
+    response = client.post("/status", json=payload)  # No header
+    assert response.status_code == 401

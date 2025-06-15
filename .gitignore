@@ -5,3 +5,5 @@ app/models/__pycache__
 tests/integration/__pycache__
 __pycache__/
 .pytest_cache/
+**/__pycache__/
+alembic/__pycache__/
