@@ -26,7 +26,7 @@ This repository contains my solution to the Ubiety Entry-Level Backend Engineer 
 ## 🗂️ File Structure
 
 ```
-Ubiety-assignment/
+ubiety-iot-status-service/
 ├── app/
 │   ├── main.py                # FastAPI entrypoint
 │   ├── api/
@@ -60,7 +60,7 @@ Ubiety-assignment/
 1. **Clone the repo**
    ```sh
    git clone https://github.com/aashikmathew/ubiety-iot-status-service
-   cd Ubiety-assignment
+   cd ubiety-iot-status-service
    ```
 
 2. **Start the stack**
@@ -484,10 +484,21 @@ jobs:
    - Isolated test environment
    - Protected secrets management
 
+
+🔭 Future Enhancements
+- JWT-based authentication with user roles and API key rotation
+- Device registration/management endpoint with metadata support
+- Real-time status updates using WebSocket connections
+- Web-based dashboard for status visualization and analytics
+- Metrics collection and monitoring integration
+- Rate limiting per device/client
+- Data retention policies and archival system
+- Multi-region deployment support
+
+
+
 ## 👨‍💻 Author & Acknowledgments
 
 **Author:** Aashik Mathew
 
-I would like to express my sincere gratitude to Ubiety for providing this challenging and insightful take-home assignment. The project requirements effectively tested both technical skills and architectural decision-making abilities. Special thanks to the Ubiety team for the opportunity to demonstrate my capabilities in building a production-ready IoT device status tracking service.
-
----
+I would like to express my sincere gratitude to Ubiety for providing this challenging and insightful take-home assignment and for the opportunity to demonstrate my capabilities in building a production-ready IoT device status tracking service.
