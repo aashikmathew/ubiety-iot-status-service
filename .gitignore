@@ -1,1 +1,7 @@
 Notreadme.md
+app/__pycache__
+app/api/endpoints/__pycache__
+app/models/__pycache__
+tests/integration/__pycache__
+__pycache__/
+.pytest_cache/
