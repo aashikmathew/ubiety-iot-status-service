@@ -2,9 +2,29 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from datetime import datetime, timedelta
+from sqlalchemy import create_engine, text
+from app.core.database import DATABASE_URL
+import os
 
 client = TestClient(app)
 headers = {"X-API-Key": "supersecretkey123"}
+
+@pytest.fixture(autouse=True)
+def cleanup_database():
+    # Create a new connection
+    engine = create_engine(DATABASE_URL)
+    
+    # Clean up before each test
+    with engine.connect() as connection:
+        connection.execute(text("TRUNCATE TABLE device_status RESTART IDENTITY"))
+        connection.commit()
+    
+    yield  # This allows the test to run
+    
+    # Clean up after each test (optional, but good practice)
+    with engine.connect() as connection:
+        connection.execute(text("TRUNCATE TABLE device_status RESTART IDENTITY"))
+        connection.commit()
 
 def test_create_and_summary():
     payload = {

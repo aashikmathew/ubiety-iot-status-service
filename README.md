@@ -87,7 +87,7 @@ All endpoints require the header:
 ```
 X-API-Key: supersecretkey123
 ```
-(The key is set in `docker-compose.yml` as `API_KEY`. Change it for production use.)
+(The key is set in `docker-compose.yml` as `API_KEY`. To be changed for production use.)
 
 ---
 
