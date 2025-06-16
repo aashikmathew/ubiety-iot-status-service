@@ -205,8 +205,10 @@ curl -X GET "http://localhost:8000/status/sensor-1/history?page=1&page_size=10" 
 
 ## 🧪 Running Tests
 
+To run the tests, use Docker Compose to ensure the correct environment:
+
 ```sh
-pytest
+docker-compose exec web pytest
 ```
 
 ### Test Coverage Highlights
