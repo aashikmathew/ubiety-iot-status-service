@@ -10,3 +10,4 @@ pytest-asyncio
 pytest-cov
 httpx
 slowapi
+prometheus_client
