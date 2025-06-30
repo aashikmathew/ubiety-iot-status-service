@@ -46,6 +46,7 @@ ubiety-iot-status-service/
 │   │   └── test_validation.py # Schema validation tests
 │   └── integration/
 │       └── test_api.py        # API integration tests
+├── grafana-dashboard.json     # Grafana dashboard config
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
