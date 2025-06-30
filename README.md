@@ -103,8 +103,6 @@ This project includes built-in observability using Prometheus and Grafana:
      - Average battery levels
      - At-risk device count
 
-> **Tip:** You can customize or create new dashboards in Grafana to fit your needs!
-
 ---
 
 ## 🔑 API Key Authentication
