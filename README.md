@@ -103,6 +103,16 @@ This project includes built-in observability using Prometheus and Grafana:
      - Average battery levels
      - At-risk device count
 
+## 📸 Example Grafana Dashboards
+
+**Total Heartbeats Panel:**
+
+![Total Heartbeats](assets/total_heartbeats.png)
+
+**Online Devices Panel:**
+
+![Online Devices](assets/online_devices.png)
+
 ---
 
 ## 🔑 API Key Authentication
