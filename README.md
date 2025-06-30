@@ -79,6 +79,32 @@ ubiety-iot-status-service/
    # {"status": "ok"}
    ```
 
+## 📊 Monitoring with Prometheus & Grafana
+
+This project includes built-in observability using Prometheus and Grafana:
+
+- **Prometheus** automatically scrapes metrics from the FastAPI service at `/metrics`.
+- **Grafana** provides beautiful dashboards for real-time visualization of device health, battery, and risk trends.
+
+### How to Use
+
+1. **Prometheus**
+   - Access Prometheus at [http://localhost:9090](http://localhost:9090)
+   - Explore metrics like `heartbeat_count_total`, `online_devices`, `at_risk_devices`, and `average_battery`.
+
+2. **Grafana**
+   - Access Grafana at [http://localhost:3000](http://localhost:3000)
+   - Login: `admin` / `admin` (change password on first login)
+   - Add Prometheus as a data source: `http://prometheus:9090`
+   - Import the provided `grafana-dashboard.json` for a ready-made dashboard
+   - Visualize:
+     - Heartbeat count over time
+     - Number of online/offline devices
+     - Average battery levels
+     - At-risk device count
+
+> **Tip:** You can customize or create new dashboards in Grafana to fit your needs!
+
 ---
 
 ## 🔑 API Key Authentication
